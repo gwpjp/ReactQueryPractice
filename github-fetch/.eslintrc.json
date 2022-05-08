@@ -38,6 +38,7 @@
     "@typescript-eslint/ban-ts-comment": ["off"],
     "@typescript-eslint/no-explicit-any": ["off"],
     "react-hooks/exhaustive-deps": ["off"],
-    "@typescript-eslint/explicit-module-boundary-types": ["off"]
+    "@typescript-eslint/explicit-module-boundary-types": ["off"],
+    "react/jsx-filename-extension": [2, { "extensions": [".js", ".jsx", ".tsx", ".ts"] }]
   }
 }
