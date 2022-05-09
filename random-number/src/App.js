@@ -1,5 +1,6 @@
 import React, { useState, useContext, createContext } from 'react';
 import { useQuery } from 'react-query';
+import { createContainer } from 'unstated-next';
 
 const fetchNumber = () =>
   fetch(
@@ -76,10 +77,10 @@ function useCounter() {
   return { count, decrement, increment };
 }
 
-let Counter = createContext(null);
+let Counter = createContainer(useCounter);
 
 function CounterDisplay() {
-  let { count, decrement, increment } = useContext(Counter);
+  let { count, decrement, increment } = Counter.useContainer();
   return (
     <div>
       <button onClick={decrement}>-</button>
@@ -97,7 +98,7 @@ export default function App() {
       <UseEffectRandom />
       <h2>React Query</h2>
       <ReactQueryRandom />
-      <Counter.Provider value={counter}>
+      <Counter.Provider initialState={2}>
         <CounterDisplay />
       </Counter.Provider>
     </div>
