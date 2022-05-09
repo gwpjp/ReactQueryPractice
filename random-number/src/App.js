@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React, { useState, useContext, createContext } from 'react';
 import { useQuery } from 'react-query';
 
 const fetchNumber = () =>
@@ -67,13 +67,39 @@ const UseEffectRandom = () => {
     </button>
   );
 };
+
+//------------
+function useCounter() {
+  let [count, setCount] = useState(0);
+  let decrement = () => setCount(count - 1);
+  let increment = () => setCount(count + 1);
+  return { count, decrement, increment };
+}
+
+let Counter = createContext(null);
+
+function CounterDisplay() {
+  let { count, decrement, increment } = useContext(Counter);
+  return (
+    <div>
+      <button onClick={decrement}>-</button>
+      <p>You clicked {count} times</p>
+      <button onClick={increment}>+</button>
+    </div>
+  );
+}
+
 export default function App() {
+  let counter = useCounter();
   return (
     <div>
       <h2>useEffect</h2>
       <UseEffectRandom />
       <h2>React Query</h2>
       <ReactQueryRandom />
+      <Counter.Provider value={counter}>
+        <CounterDisplay />
+      </Counter.Provider>
     </div>
   );
 }
