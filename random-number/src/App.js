@@ -104,7 +104,9 @@ const ReactQueryGreeting = () => {
     <div>
       <p>
         {!greet.isError
-          ? `Greeting: ${greet.data}`
+          ? greet.isLoading || greet.isFetching
+            ? 'Loading...'
+            : `Greeting: ${greet.data}`
           : `Error: ${greet.error.message}`}
       </p>
       <button onClick={() => greet.refetch()}>Fetch Greeting</button>
@@ -114,9 +116,6 @@ const ReactQueryGreeting = () => {
 
 export default function App() {
   const [greeting, setGreetingValue] = useState();
-  const user = useQuery(['user'], fetchUser, {
-    refetchOnWindowFocus: false,
-  });
 
   // call the smart contract, send an update
   async function setGreeting() {
