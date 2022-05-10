@@ -86,9 +86,26 @@ const ReactQueryUser = () => {
   return (
     <div>
       <p>User: {user.isLoading || user.isFetching ? '...' : user.data}</p>
-      <button onClick={() => user.refetch()}>
-        User: {user.isLoading || user.isFetching ? '...' : user.data[0]}
-      </button>
+      <button onClick={() => user.refetch()}>Get User</button>
+    </div>
+  );
+};
+
+const fetchGreeting = () => {
+  const provider = new ethers.providers.Web3Provider(window.ethereum);
+  const contract = new ethers.Contract(greeterAddress, Greeter.abi, provider);
+  return contract.greet();
+};
+
+const ReactQueryGreeting = () => {
+  const greet = useQuery(['greet'], fetchGreeting);
+
+  if (greet.isError) return <p>Error: {greet.error.message}</p>;
+
+  return (
+    <div>
+      <p>Greeting: {greet.data}</p>
+      <button onClick={() => greet.refetch()}>Fetch Greeting</button>
     </div>
   );
 };
@@ -98,24 +115,6 @@ export default function App() {
   const user = useQuery(['user'], fetchUser, {
     refetchOnWindowFocus: false,
   });
-
-  // call the smart contract, read the current greeting value
-  async function fetchGreeting() {
-    if (!user.isError && typeof window.ethereum !== 'undefined') {
-      const provider = new ethers.providers.Web3Provider(window.ethereum);
-      const contract = new ethers.Contract(
-        greeterAddress,
-        Greeter.abi,
-        provider
-      );
-      try {
-        const data = await contract.greet();
-        console.log('data: ', data);
-      } catch (err) {
-        console.log('Error: ', err);
-      }
-    }
-  }
 
   // call the smart contract, send an update
   async function setGreeting() {
@@ -133,7 +132,7 @@ export default function App() {
   return (
     <div>
       <header className="App-header">
-        <button onClick={fetchGreeting}>Fetch Greeting</button>
+        <ReactQueryGreeting />
         <button onClick={setGreeting}>Set Greeting</button>
         <input
           onChange={(e) => setGreetingValue(e.target.value)}
