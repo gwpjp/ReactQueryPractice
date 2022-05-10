@@ -100,11 +100,13 @@ const fetchGreeting = () => {
 const ReactQueryGreeting = () => {
   const greet = useQuery(['greet'], fetchGreeting);
 
-  if (greet.isError) return <p>Error: {greet.error.message}</p>;
-
   return (
     <div>
-      <p>Greeting: {greet.data}</p>
+      <p>
+        {!greet.isError
+          ? `Greeting: ${greet.data}`
+          : `Error: ${greet.error.message}`}
+      </p>
       <button onClick={() => greet.refetch()}>Fetch Greeting</button>
     </div>
   );
