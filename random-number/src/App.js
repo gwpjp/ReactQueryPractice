@@ -101,7 +101,7 @@ export default function App() {
 
   // call the smart contract, read the current greeting value
   async function fetchGreeting() {
-    if (typeof window.ethereum !== 'undefined') {
+    if (!user.isError && typeof window.ethereum !== 'undefined') {
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       const contract = new ethers.Contract(
         greeterAddress,
