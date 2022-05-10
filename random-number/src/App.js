@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState, useReducer } from 'react';
 import { useQuery } from 'react-query';
 import { ethers } from 'ethers';
 import Greeter from './artifacts/contracts/Greeter.sol/Greeter.json';
@@ -31,12 +31,12 @@ const ReactQueryRandom = () => {
 };
 
 const UseEffectRandom = () => {
-  const [key, forceUpdate] = React.useReducer((x) => x + 1, 0);
-  const [num, setNum] = React.useState();
-  const [loading, setLoading] = React.useState(false);
-  const [error, setError] = React.useState('');
+  const [key, forceUpdate] = useReducer((x) => x + 1, 0);
+  const [num, setNum] = useState();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
-  React.useEffect(() => {
+  useEffect(() => {
     setLoading(true);
 
     fetch(
@@ -71,13 +71,33 @@ const UseEffectRandom = () => {
     </button>
   );
 };
+
+const fetchUser = () => {
+  return window.ethereum.request({ method: 'eth_requestAccounts' });
+};
+
+const ReactQueryUser = () => {
+  const user = useQuery(['user'], fetchUser, {
+    refetchOnWindowFocus: false,
+  });
+
+  if (user.isError) return <p>Error: {user.error.message}</p>;
+
+  return (
+    <div>
+      <p>User: {user.isLoading || user.isFetching ? '...' : user.data}</p>
+      <button onClick={() => user.refetch()}>
+        User: {user.isLoading || user.isFetching ? '...' : user.data[0]}
+      </button>
+    </div>
+  );
+};
+
 export default function App() {
   const [greeting, setGreetingValue] = useState();
-
-  // request access to the user's account. This works regardless of the wallet you're using.
-  async function requestAccount() {
-    await window.ethereum.request({ method: 'eth_requestAccounts' });
-  }
+  const user = useQuery(['user'], fetchUser, {
+    refetchOnWindowFocus: false,
+  });
 
   // call the smart contract, read the current greeting value
   async function fetchGreeting() {
@@ -101,7 +121,6 @@ export default function App() {
   async function setGreeting() {
     if (!greeting) return;
     if (typeof window.ethereum !== 'undefined') {
-      await requestAccount();
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       const signer = provider.getSigner();
       const contract = new ethers.Contract(greeterAddress, Greeter.abi, signer);
@@ -125,6 +144,8 @@ export default function App() {
       <UseEffectRandom />
       <h2>React Query</h2>
       <ReactQueryRandom />
+      <h2>User</h2>
+      <ReactQueryUser />
     </div>
   );
 }
