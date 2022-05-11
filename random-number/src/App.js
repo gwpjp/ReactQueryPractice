@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useReducer } from 'react';
-import { useQuery } from 'react-query';
+import { useQuery, useMutation } from 'react-query';
 import { ethers } from 'ethers';
 import Greeter from './artifacts/contracts/Greeter.sol/Greeter.json';
 
@@ -77,9 +77,7 @@ const fetchUser = () => {
 };
 
 const ReactQueryUser = () => {
-  const user = useQuery(['user'], fetchUser, {
-    refetchOnWindowFocus: false,
-  });
+  const user = useQuery(['user'], fetchUser);
 
   if (user.isError) return <p>Error: {user.error.message}</p>;
 
@@ -97,7 +95,14 @@ const fetchGreeting = () => {
   return contract.greet();
 };
 
-const ReactQueryGreeting = () => {
+const setGreeting = (greeting) => {
+  const provider = new ethers.providers.Web3Provider(window.ethereum);
+  const signer = provider.getSigner();
+  const contract = new ethers.Contract(greeterAddress, Greeter.abi, signer);
+  return contract.setGreeting(greeting);
+};
+
+const ReactQueryFetchGreeting = () => {
   const greet = useQuery(['greet'], fetchGreeting);
 
   return (
@@ -114,38 +119,83 @@ const ReactQueryGreeting = () => {
   );
 };
 
+const ReactQuerySetGreeting = () => {
+  const [greetVal, setGreetingValue] = useState();
+
+  const greetMutation = useMutation((g) => setGreeting(g));
+
+  return (
+    <div>
+      <button
+        onClick={() =>
+          greetMutation.mutate(greetVal, {
+            onSuccess: async (d) => {
+              d.wait();
+            },
+          })
+        }
+      >
+        Set Greeting
+      </button>
+      <input
+        onChange={(e) => setGreetingValue(e.target.value)}
+        placeholder="Set greeting"
+      />
+    </div>
+  );
+};
+
 export default function App() {
   const [greeting, setGreetingValue] = useState();
+  const greet = useQuery(['greet'], fetchGreeting);
 
   // call the smart contract, send an update
-  async function setGreeting() {
+  /*async function requestAccount() {
+    await window.ethereum.request({ method: 'eth_requestAccounts' });
+  }
+  async function setGreeting2() {
     if (!greeting) return;
     if (typeof window.ethereum !== 'undefined') {
+      await requestAccount();
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       const signer = provider.getSigner();
       const contract = new ethers.Contract(greeterAddress, Greeter.abi, signer);
       const transaction = await contract.setGreeting(greeting);
       await transaction.wait();
-      fetchGreeting();
+      greet.refetch();
     }
-  }
+  }*/
 
   return (
-    <div>
-      <header className="App-header">
-        <ReactQueryGreeting />
-        <button onClick={setGreeting}>Set Greeting</button>
+    <div style={{ width: '100%', display: 'flex', alignContent: 'stretch' }}>
+      <div style={{ padding: 20, margin: 20 }}>
+        <h2>Greeting from Blockchain</h2>
+        <h4>Fetch:</h4>
+        <ReactQueryFetchGreeting />
+        <h4>Set:</h4>
+        <ReactQuerySetGreeting />
+      </div>
+
+      {/*
+      <h1>
+        <button onClick={setGreeting2}>Set Greeting</button>
         <input
           onChange={(e) => setGreetingValue(e.target.value)}
           placeholder="Set greeting"
-        />
-      </header>
+      />
+      </h1>
+       
       <h2>useEffect</h2>
       <UseEffectRandom />
-      <h2>React Query</h2>
-      <ReactQueryRandom />
-      <h2>User</h2>
-      <ReactQueryUser />
+       */}
+      <div style={{ padding: 20, margin: 20 }}>
+        <h2>Random Number from API</h2>
+        <ReactQueryRandom />
+      </div>
+      <div style={{ padding: 20, margin: 20 }}>
+        <h2>User from Metamask</h2>
+        <ReactQueryUser />
+      </div>
     </div>
   );
 }
