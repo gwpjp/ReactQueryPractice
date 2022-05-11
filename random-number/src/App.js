@@ -1,5 +1,10 @@
 import React, { useEffect, useState, useReducer } from 'react';
-import { useQuery, useMutation } from 'react-query';
+import {
+  useQuery,
+  useMutation,
+  QueryClient,
+  useQueryClient,
+} from 'react-query';
 import { ethers } from 'ethers';
 import Greeter from './artifacts/contracts/Greeter.sol/Greeter.json';
 
@@ -95,11 +100,12 @@ const fetchGreeting = () => {
   return contract.greet();
 };
 
-const setGreeting = (greeting) => {
+const setGreeting = async (greeting) => {
   const provider = new ethers.providers.Web3Provider(window.ethereum);
   const signer = provider.getSigner();
   const contract = new ethers.Contract(greeterAddress, Greeter.abi, signer);
-  return contract.setGreeting(greeting);
+  const transaction = await contract.setGreeting(greeting);
+  return await transaction.wait();
 };
 
 const ReactQueryFetchGreeting = () => {
@@ -121,16 +127,19 @@ const ReactQueryFetchGreeting = () => {
 
 const ReactQuerySetGreeting = () => {
   const [greetVal, setGreetingValue] = useState();
+  const [transaction, setTransactionValue] = useState(null);
 
   const greetMutation = useMutation((g) => setGreeting(g));
+  const queryClient = useQueryClient();
 
   return (
     <div>
       <button
         onClick={() =>
           greetMutation.mutate(greetVal, {
-            onSuccess: async (d) => {
-              d.wait();
+            onSuccess: (d) => {
+              queryClient.invalidateQueries('user');
+              setTransactionValue(d);
             },
           })
         }
@@ -141,6 +150,17 @@ const ReactQuerySetGreeting = () => {
         onChange={(e) => setGreetingValue(e.target.value)}
         placeholder="Set greeting"
       />
+      {transaction && (
+        <div>
+          <h4>Transaction:</h4>
+          <p>From:</p>
+          <p>{transaction.from}</p>
+          <p>To:</p>
+          <p>{transaction.to}</p>
+          <p>Transaction:</p>
+          <p>{transaction.transactionHash}</p>
+        </div>
+      )}
     </div>
   );
 };
