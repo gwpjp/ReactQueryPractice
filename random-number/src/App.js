@@ -7,7 +7,12 @@ import {
 } from 'react-query';
 import { ethers } from 'ethers';
 import Onboard from '@web3-onboard/core';
-// import { init, useConnectWallet, useSetChain, useWallets} from '@web3-onboard/react'
+import {
+  init,
+  useConnectWallet,
+  useSetChain,
+  useWallets,
+} from '@web3-onboard/react';
 import injectedModule from '@web3-onboard/injected-wallets';
 import Greeter from './artifacts/contracts/Greeter.sol/Greeter.json';
 
@@ -111,7 +116,6 @@ const fetchUser = () => {
 
 const ReactQueryUser = () => {
   const user = useQuery(['user'], fetchUser);
-  // console.log(user);
 
   if (user.isError) return <p>Error: {user.error.message}</p>;
 

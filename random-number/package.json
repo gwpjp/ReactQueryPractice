@@ -28,7 +28,7 @@
     "css-minimizer-webpack-plugin": "^3.2.0",
     "dotenv": "^10.0.0",
     "dotenv-expand": "^5.1.0",
-    "eslint": "^8.3.0",
+    "eslint": "^8.0.0",
     "eslint-config-react-app": "^7.0.1",
     "eslint-webpack-plugin": "^3.1.1",
     "ethers": "^5.6.5",
@@ -53,6 +53,7 @@
     "react-dom": "^18.1.0",
     "react-query": "^4.0.0-beta.8",
     "react-refresh": "^0.11.0",
+    "react-scripts": "^4.0.3",
     "resolve": "^1.20.0",
     "resolve-url-loader": "^4.0.0",
     "sass-loader": "^12.3.0",
@@ -88,7 +89,6 @@
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^5.22.0",
     "@typescript-eslint/parser": "^5.22.0",
-    "eslint": "^7.32.0",
     "eslint-config-airbnb": "^19.0.4",
     "eslint-config-prettier": "^8.5.0",
     "eslint-plugin-import": "^2.26.0",
@@ -97,6 +97,7 @@
     "eslint-plugin-react": "^7.29.4",
     "eslint-plugin-react-hooks": "^4.5.0",
     "hardhat": "^2.9.3",
+    "path-browserify": "^1.0.1",
     "prettier": "^2.6.2"
   },
   "jest": {
