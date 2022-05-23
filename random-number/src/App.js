@@ -6,9 +6,36 @@ import {
   useQueryClient,
 } from 'react-query';
 import { ethers } from 'ethers';
+import Onboard from '@web3-onboard/core';
+// import { init, useConnectWallet, useSetChain, useWallets} from '@web3-onboard/react'
+import injectedModule from '@web3-onboard/injected-wallets';
 import Greeter from './artifacts/contracts/Greeter.sol/Greeter.json';
 
 const greeterAddress = '0x5FbDB2315678afecb367f032d93F642f64180aa3';
+
+const injected = injectedModule();
+
+const onboard = Onboard({
+  wallets: [injected],
+  chains: [
+    {
+      id: '0x7A69',
+      token: 'ETH',
+      label: 'Hardhat',
+      rpcUrl: 'http://localhost:8545',
+    },
+  ],
+  appMetadata: {
+    name: 'My App',
+    icon: '<SVG_ICON_STRING>',
+    description: 'My app using Onboard',
+  },
+  accountCenter: {
+    desktop: {
+      enabled: false, // default: true
+    },
+  },
+});
 
 const fetchNumber = () =>
   fetch(
@@ -78,17 +105,24 @@ const UseEffectRandom = () => {
 };
 
 const fetchUser = () => {
-  return window.ethereum.request({ method: 'eth_requestAccounts' });
+  // return window.ethereum.request({ method: 'eth_requestAccounts' });
+  return onboard.connectWallet();
 };
 
 const ReactQueryUser = () => {
   const user = useQuery(['user'], fetchUser);
+  // console.log(user);
 
   if (user.isError) return <p>Error: {user.error.message}</p>;
 
   return (
     <div>
-      <p>User: {user.isLoading || user.isFetching ? '...' : user.data}</p>
+      <p>
+        User:{' '}
+        {user.isLoading || user.isFetching
+          ? '...'
+          : user.data[0].provider.selectedAddress}
+      </p>
       <button onClick={() => user.refetch()}>Get User</button>
     </div>
   );
@@ -135,14 +169,15 @@ const ReactQuerySetGreeting = () => {
   return (
     <div>
       <button
-        onClick={() =>
-          greetMutation.mutate(greetVal, {
+        onClick={(e) => {
+          e.preventDefault();
+          return greetMutation.mutate(greetVal, {
             onSuccess: (d) => {
               queryClient.invalidateQueries('user');
               setTransactionValue(d);
             },
-          })
-        }
+          });
+        }}
       >
         Set Greeting
       </button>
