@@ -7,16 +7,24 @@ import {
 } from 'react-query';
 import { ethers } from 'ethers';
 import Onboard from '@web3-onboard/core';
+import {
+  init,
+  useConnectWallet,
+  useSetChain,
+  useWallets,
+} from '@web3-onboard/react';
 import injectedModule from '@web3-onboard/injected-wallets';
+import coinbaseModule from '@web3-onboard/coinbase';
 
 import Greeter from './artifacts/contracts/Greeter.sol/Greeter.json';
 
 const greeterAddress = '0x5FbDB2315678afecb367f032d93F642f64180aa3';
 
 const injected = injectedModule();
+const coinbase = coinbaseModule();
 
-const onboard = Onboard({
-  wallets: [injected],
+const web3Onboard = init({
+  wallets: [injected, coinbase],
   chains: [
     {
       id: '0x7A69',
@@ -27,7 +35,7 @@ const onboard = Onboard({
   ],
   appMetadata: {
     name: 'My App',
-    icon: '<SVG_ICON_STRING>',
+    icon: '<svg width="48px" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 286.3 286.3" class="jss12"><path d="M143.15 3.88C66.23 3.88 3.88 66.23 3.88 143.15s62.35 139.28 139.27 139.28 139.27-62.36 139.27-139.28S220.07 3.88 143.15 3.88" fill="#6400ff"></path><path fill="#fff" d="M142.46 164.84v-31.22l-85.35 43.79h158.45V89.83z"></path></svg>',
     description: 'My app using Onboard',
   },
   accountCenter: {
@@ -106,23 +114,62 @@ const UseEffectRandom = () => {
 
 const fetchUser = () => {
   // return window.ethereum.request({ method: 'eth_requestAccounts' });
-  return onboard.connectWallet();
+  const previouslyConnectedWallets = JSON.parse(
+    window.localStorage.getItem('connectedWallets')
+  );
+
+  try {
+    if (previouslyConnectedWallets && previouslyConnectedWallets.length > 0) {
+      return web3Onboard.connectWallet({
+        autoSelect: {
+          label: previouslyConnectedWallets[0],
+          disableModals: true,
+        },
+      });
+    } else {
+      return web3Onboard.connectWallet();
+    }
+  } catch (error) {
+    console.log(error);
+  }
 };
 
 const ReactQueryUser = () => {
-  const user = useQuery(['user'], fetchUser);
+  const user = useQuery(['user'], fetchUser, {
+    refetchOnWindowFocus: false,
+  });
 
   if (user.isError) return <p>Error: {user.error.message}</p>;
 
+  const walletsSub = web3Onboard.state.select('wallets');
+  const { unsubscribe } = walletsSub.subscribe((wallets) => {
+    const connectedWallets = wallets.map(({ label }) => label);
+    window.localStorage.setItem(
+      'connectedWallets',
+      JSON.stringify(connectedWallets)
+    );
+  });
+
+  let icon = '';
+  if (user.isFetched) {
+    icon = user.data[0].icon;
+  }
+
   return (
     <div>
+      <div
+        dangerouslySetInnerHTML={{ __html: icon }}
+        style={{ height: 20, display: 'inline-block' }}
+      ></div>
+      <p>
+        Wallet: {user.isLoading || user.isFetching ? '...' : user.data[0].label}{' '}
+      </p>
       <p>
         User:{' '}
         {user.isLoading || user.isFetching
           ? '...'
           : user.data[0].provider.selectedAddress}
       </p>
-      <button onClick={() => user.refetch()}>Get User</button>
     </div>
   );
 };
@@ -163,7 +210,6 @@ const ReactQuerySetGreeting = () => {
   const [transaction, setTransactionValue] = useState(null);
 
   const greetMutation = useMutation((g) => setGreeting(g));
-  const queryClient = useQueryClient();
 
   return (
     <div>
@@ -171,7 +217,6 @@ const ReactQuerySetGreeting = () => {
         onClick={() =>
           greetMutation.mutate(greetVal, {
             onSuccess: (d) => {
-              queryClient.invalidateQueries('user');
               setTransactionValue(d);
             },
           })
