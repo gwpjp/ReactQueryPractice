@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useQuery, useMutation } from 'react-query';
 import { ethers } from 'ethers';
 import useUser from '../hooks/useUser';
+import EnableUser from '../hooks/useEnableUser';
 
 import Greeter from '../artifacts/contracts/Greeter.sol/Greeter.json';
 
@@ -22,7 +23,9 @@ const setGreeting = async (greeting, p) => {
 };
 
 // eslint-disable-next-line react/prop-types
-export function ReactQueryFetchGreeting({ userEnabled }) {
+export function ReactQueryFetchGreeting() {
+  const { userEnabled } = EnableUser.useContainer();
+
   const user = useUser(userEnabled);
   let provider;
   if (user.isFetched) {
@@ -53,7 +56,9 @@ export function ReactQueryFetchGreeting({ userEnabled }) {
 }
 
 // eslint-disable-next-line react/prop-types
-export function ReactQuerySetGreeting({ userEnabled }) {
+export function ReactQuerySetGreeting() {
+  const { userEnabled } = EnableUser.useContainer();
+
   const [greetVal, setGreetingValue] = useState();
   const [transaction, setTransactionValue] = useState(null);
 

@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React from 'react';
 import useUser from '../hooks/useUser';
+import EnableUser from '../hooks/useEnableUser';
 
-// eslint-disable-next-line react/prop-types
-export default function ReactQueryUser({ enableUser, setEnableUser }) {
-  const user = useUser(enableUser);
+export default function ReactQueryUser() {
+  let { userEnabled, setUserEnabled } = EnableUser.useContainer();
+  const user = useUser(userEnabled);
 
   if (user.isError) return <p>Error: {user.error.message}</p>;
 
@@ -14,7 +15,7 @@ export default function ReactQueryUser({ enableUser, setEnableUser }) {
 
   return (
     <div>
-      {enableUser && user.isFetched ? (
+      {userEnabled && user.isFetched ? (
         <div>
           <div
             dangerouslySetInnerHTML={{ __html: icon }}
@@ -34,7 +35,7 @@ export default function ReactQueryUser({ enableUser, setEnableUser }) {
       ) : (
         <button
           onClick={() => {
-            setEnableUser(true);
+            setUserEnabled(true);
           }}
         >
           Connect Wallet
