@@ -5,12 +5,11 @@ import {
   ReactQueryFetchGreeting,
   ReactQuerySetGreeting,
 } from './components/Greeting.js';
-import EnableUser from './hooks/useEnableUser.js';
-import { Onboard } from './hooks/useUser.js';
+import Onboard from './containers/Onboard.js';
 
 export default function App() {
   return (
-    <EnableUser.Provider>
+    <Onboard.Provider>
       <div style={{ width: '100%', display: 'flex', alignContent: 'stretch' }}>
         <div style={{ padding: 10, margin: 0 }}>
           <h2>Greeting from Blockchain</h2>
@@ -25,13 +24,11 @@ export default function App() {
           <ReactQueryRandom />
         </div>
 
-        <Onboard.Provider>
-          <div style={{ padding: 10, marginLeft: 20 }}>
-            <h2>User from Metamask</h2>
-            <ReactQueryUser />
-          </div>
-        </Onboard.Provider>
+        <div style={{ padding: 10, marginLeft: 20 }}>
+          <h2>User from Metamask</h2>
+          <ReactQueryUser />
+        </div>
       </div>
-    </EnableUser.Provider>
+    </Onboard.Provider>
   );
 }

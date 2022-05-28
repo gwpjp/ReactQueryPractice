@@ -1,46 +1,40 @@
 import React from 'react';
-import useUser, { Onboard } from '../hooks/useUser';
-import EnableUser from '../hooks/useEnableUser';
+import Onboard from '../containers/Onboard';
 
 export default function ReactQueryUser() {
-  let { userEnabled, setUserEnabled } = EnableUser.useContainer();
-  let { wallet } = Onboard.useContainer();
-  const user = useUser(userEnabled);
-
-  if (user.isError) return <p>Error: {user.error.message}</p>;
-
-  let icon = '';
-  if (user.isFetched) {
-    icon = user.data[0].icon;
-  }
+  let { wallet, connecting, disconnect, connect, userEnabled, setUserEnabled } =
+    Onboard.useContainer();
 
   return (
     <div>
-      {userEnabled && user.isFetched ? (
+      {wallet && userEnabled ? (
         <div>
+          <div>
+            <button
+              onClick={() => {
+                setUserEnabled(false);
+                disconnect(wallet);
+                window.localStorage.removeItem('connectedWallets');
+              }}
+            >
+              Disconnect
+            </button>
+          </div>
           <div
-            dangerouslySetInnerHTML={{ __html: icon }}
+            dangerouslySetInnerHTML={{ __html: wallet.icon }}
             style={{ height: 20, display: 'inline-block' }}
           ></div>
-          <p>
-            Wallet:{' '}
-            {user.isLoading || user.isFetching ? '...' : user.data[0].label}{' '}
-          </p>
-          <p>
-            User:{' '}
-            {user.isLoading || user.isFetching
-              ? '...'
-              : user.data[0].provider.selectedAddress}
-          </p>
-          <p>User2:{wallet.accounts[0].address}</p>
+          <p>Wallet: {connecting ? '...' : wallet.label} </p>
+          <p>User: {connecting ? '...' : wallet.accounts[0].address}</p>
         </div>
       ) : (
         <button
           onClick={() => {
             setUserEnabled(true);
+            connect();
           }}
         >
-          Connect Wallet
+          {connecting ? 'Connecting...' : 'Connect Wallet'}
         </button>
       )}
     </div>

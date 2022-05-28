@@ -23,7 +23,7 @@ const walletConnect = walletConnectModule();
 const torus = torusModule();
 const gnosis = gnosisModule();
 
-const web3Onboard = init({
+const initWeb3Onboard = init({
   wallets: [injected, coinbase, ledger, walletConnect, torus, gnosis],
   chains: [
     {
@@ -59,53 +59,17 @@ const web3Onboard = init({
   },
 });
 
-const fetchUser = () => {
-  const previouslyConnectedWallets = JSON.parse(
-    window.localStorage.getItem('connectedWallets')
-  );
-
-  try {
-    if (previouslyConnectedWallets && previouslyConnectedWallets.length > 0) {
-      return web3Onboard.connectWallet({
-        autoSelect: {
-          label: previouslyConnectedWallets[0],
-          disableModals: true,
-        },
-      });
-    } else {
-      return web3Onboard.connectWallet();
-    }
-  } catch (error) {
-    console.log(error);
-  }
-};
-
-export default function useUser(enableUser) {
-  const user = useQuery(['user'], fetchUser, {
-    refetchOnWindowFocus: false,
-    enabled: enableUser,
-  });
-  const walletsSub = web3Onboard.state.select('wallets');
-  const { unsubscribe } = walletsSub.subscribe((wallets) => {
-    const connectedWallets = wallets.map(({ label }) => label);
-    window.localStorage.setItem(
-      'connectedWallets',
-      JSON.stringify(connectedWallets)
-    );
-  });
-  return user;
-}
-
-let provider;
-
 function useOnboard() {
-  const [{ wallet }, connect, disconnect] = useConnectWallet();
+  const [{ wallet, connecting }, connect, disconnect] = useConnectWallet();
   const [{ chains, connectedChain, settingChain }, setChain] = useSetChain();
   const connectedWallets = useWallets();
 
-  const [vWeb3Onboard, setWeb3Onboard] = useState(null);
+  const [web3Onboard, setWeb3Onboard] = useState(null);
+  const [provider, setProvider] = useState(null);
+  const [userEnabled, setUserEnabled] = useState(false);
+
   useEffect(() => {
-    setWeb3Onboard(web3Onboard);
+    setWeb3Onboard(initWeb3Onboard);
   }, []);
 
   useEffect(() => {
@@ -122,9 +86,9 @@ function useOnboard() {
 
   useEffect(() => {
     if (!wallet?.provider) {
-      provider = null;
+      setProvider(null);
     } else {
-      provider = new ethers.providers.Web3Provider(wallet.provider, 'any');
+      setProvider(wallet.provider);
     }
   }, [wallet]);
 
@@ -135,7 +99,13 @@ function useOnboard() {
 
     if (previouslyConnectedWallets?.length) {
       async function setWalletFromLocalStorage() {
-        await connect({ autoSelect: previouslyConnectedWallets[0] });
+        await connect({
+          autoSelect: {
+            label: previouslyConnectedWallets[0],
+            disableModals: true,
+          },
+        });
+        setUserEnabled(true);
       }
       setWalletFromLocalStorage();
     }
@@ -146,13 +116,25 @@ function useOnboard() {
       const walletSelected = await connect();
       if (!walletSelected) return false;
     }
-    // prompt user to switch to Hardhat for test
+    // prompt user to switch to Rinkeby for test
     await setChain({ chainId: '0x7A69' });
 
     return true;
   };
 
-  return { wallet, vWeb3Onboard, connectedWallets };
+  return {
+    wallet,
+    provider,
+    connecting,
+    disconnect,
+    connect,
+    web3Onboard,
+    connectedWallets,
+    readyToTransact,
+    userEnabled,
+    setUserEnabled,
+  };
 }
 
-export let Onboard = createContainer(useOnboard);
+let Onboard = createContainer(useOnboard);
+export default Onboard;
