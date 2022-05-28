@@ -7,7 +7,8 @@ import Greeter from '../artifacts/contracts/Greeter.sol/Greeter.json';
 
 const greeterAddress = '0x5FbDB2315678afecb367f032d93F642f64180aa3';
 
-const fetchGreeting = (p) => {
+const fetchGreeting = async (p, setChain) => {
+  await setChain({ chainId: '0x7A69' });
   const provider = new ethers.providers.Web3Provider(p);
   const contract = new ethers.Contract(greeterAddress, Greeter.abi, provider);
   return contract.greet();
@@ -22,9 +23,10 @@ const setGreeting = async (greeting, p) => {
 };
 
 export function ReactQueryFetchGreeting() {
-  const { provider, readyToTransact, userEnabled } = Onboard.useContainer();
+  const { provider, readyToTransact, userEnabled, setChain } =
+    Onboard.useContainer();
 
-  const greet = useQuery(['greet'], () => fetchGreeting(provider), {
+  const greet = useQuery(['greet'], () => fetchGreeting(provider, setChain), {
     enabled: !!provider && userEnabled,
   });
 
@@ -44,7 +46,6 @@ export function ReactQueryFetchGreeting() {
           <button
             onClick={async () => {
               const ready = await readyToTransact();
-              console.log(ready);
               if (!ready) return;
               greet.refetch();
             }}

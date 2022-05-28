@@ -1,7 +1,5 @@
 /* eslint-disable no-inner-declarations */
 import { useState, useEffect } from 'react';
-import { useQuery } from 'react-query';
-import { ethers } from 'ethers';
 import {
   init,
   useConnectWallet,
@@ -31,6 +29,12 @@ const initWeb3Onboard = init({
       token: 'ETH',
       label: 'Hardhat',
       rpcUrl: 'http://localhost:8545',
+    },
+    {
+      id: '0x4',
+      token: 'rETH',
+      label: 'Rinkeby Testnet',
+      rpcUrl: `https://rinkeby.infura.io/v3/`,
     },
   ],
   appMetadata: {
@@ -133,6 +137,10 @@ function useOnboard() {
     readyToTransact,
     userEnabled,
     setUserEnabled,
+    chains,
+    connectedChain,
+    setChain,
+    settingChain,
   };
 }
 
