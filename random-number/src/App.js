@@ -6,6 +6,7 @@ import {
   ReactQuerySetGreeting,
 } from './components/Greeting.js';
 import EnableUser from './hooks/useEnableUser.js';
+import { Onboard } from './hooks/useUser.js';
 
 export default function App() {
   return (
@@ -24,10 +25,12 @@ export default function App() {
           <ReactQueryRandom />
         </div>
 
-        <div style={{ padding: 10, marginLeft: 20 }}>
-          <h2>User from Metamask</h2>
-          <ReactQueryUser />
-        </div>
+        <Onboard.Provider>
+          <div style={{ padding: 10, marginLeft: 20 }}>
+            <h2>User from Metamask</h2>
+            <ReactQueryUser />
+          </div>
+        </Onboard.Provider>
       </div>
     </EnableUser.Provider>
   );

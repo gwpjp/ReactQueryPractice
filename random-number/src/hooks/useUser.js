@@ -1,5 +1,14 @@
+/* eslint-disable no-inner-declarations */
+import { useState, useEffect } from 'react';
 import { useQuery } from 'react-query';
-import { init } from '@web3-onboard/react';
+import { ethers } from 'ethers';
+import {
+  init,
+  useConnectWallet,
+  useSetChain,
+  useWallets,
+} from '@web3-onboard/react';
+import { createContainer } from 'unstated-next';
 import injectedModule from '@web3-onboard/injected-wallets';
 import coinbaseModule from '@web3-onboard/coinbase';
 import ledgerModule from '@web3-onboard/ledger';
@@ -86,3 +95,64 @@ export default function useUser(enableUser) {
   });
   return user;
 }
+
+let provider;
+
+function useOnboard() {
+  const [{ wallet }, connect, disconnect] = useConnectWallet();
+  const [{ chains, connectedChain, settingChain }, setChain] = useSetChain();
+  const connectedWallets = useWallets();
+
+  const [vWeb3Onboard, setWeb3Onboard] = useState(null);
+  useEffect(() => {
+    setWeb3Onboard(web3Onboard);
+  }, []);
+
+  useEffect(() => {
+    if (!connectedWallets.length) return;
+
+    const connectedWalletsLabelArray = connectedWallets.map(
+      ({ label }) => label
+    );
+    window.localStorage.setItem(
+      'connectedWallets',
+      JSON.stringify(connectedWalletsLabelArray)
+    );
+  }, [connectedWallets, wallet]);
+
+  useEffect(() => {
+    if (!wallet?.provider) {
+      provider = null;
+    } else {
+      provider = new ethers.providers.Web3Provider(wallet.provider, 'any');
+    }
+  }, [wallet]);
+
+  useEffect(() => {
+    const previouslyConnectedWallets = JSON.parse(
+      window.localStorage.getItem('connectedWallets')
+    );
+
+    if (previouslyConnectedWallets?.length) {
+      async function setWalletFromLocalStorage() {
+        await connect({ autoSelect: previouslyConnectedWallets[0] });
+      }
+      setWalletFromLocalStorage();
+    }
+  }, [web3Onboard, connect]);
+
+  const readyToTransact = async () => {
+    if (!wallet) {
+      const walletSelected = await connect();
+      if (!walletSelected) return false;
+    }
+    // prompt user to switch to Hardhat for test
+    await setChain({ chainId: '0x7A69' });
+
+    return true;
+  };
+
+  return { wallet, vWeb3Onboard, connectedWallets };
+}
+
+export let Onboard = createContainer(useOnboard);

@@ -1,9 +1,10 @@
 import React from 'react';
-import useUser from '../hooks/useUser';
+import useUser, { Onboard } from '../hooks/useUser';
 import EnableUser from '../hooks/useEnableUser';
 
 export default function ReactQueryUser() {
   let { userEnabled, setUserEnabled } = EnableUser.useContainer();
+  let { wallet } = Onboard.useContainer();
   const user = useUser(userEnabled);
 
   if (user.isError) return <p>Error: {user.error.message}</p>;
@@ -31,6 +32,7 @@ export default function ReactQueryUser() {
               ? '...'
               : user.data[0].provider.selectedAddress}
           </p>
+          <p>User2:{wallet.accounts[0].address}</p>
         </div>
       ) : (
         <button
