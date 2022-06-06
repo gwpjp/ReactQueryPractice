@@ -1,5 +1,6 @@
 import React from 'react';
 import Onboard from '../containers/Onboard';
+import { useBalance } from '../hooks/useBalance';
 
 export default function ReactQueryUser() {
   let {
@@ -13,11 +14,23 @@ export default function ReactQueryUser() {
     chains,
     setChain,
     settingChain,
+    web3Provider,
+    blockNumber,
+    address,
+    readyToTransact,
   } = Onboard.useContainer();
+
+  const balance = useBalance(
+    settingChain,
+    connectedChain,
+    address,
+    web3Provider,
+    readyToTransact
+  );
 
   return (
     <div>
-      {wallet && userEnabled ? (
+      {wallet && userEnabled && !connecting ? (
         <div>
           <div>
             <button
@@ -31,8 +44,11 @@ export default function ReactQueryUser() {
             </button>
           </div>
           <div>
-            Current Network:{' '}
-            {settingChain ? 'Connecting...' : connectedChain.id}
+            <p>
+              Current Network:{' '}
+              {settingChain ? 'Connecting...' : connectedChain.id}
+            </p>
+            <p>Block: {blockNumber}</p>
           </div>
           <div>
             <label>
@@ -60,9 +76,10 @@ export default function ReactQueryUser() {
               dangerouslySetInnerHTML={{ __html: wallet.icon }}
               style={{ height: 20, display: 'inline-block' }}
             ></div>
-            {connecting ? '...' : wallet.label}{' '}
+            {!wallet || !wallet.label || connecting ? '...' : wallet.label}{' '}
           </div>
-          <p>User: {connecting ? '...' : wallet.accounts[0].address}</p>
+          <p>User: {!address || connecting ? '...' : address}</p>
+          <p>Balance: {balance.balance} ETH</p>
         </div>
       ) : (
         <button

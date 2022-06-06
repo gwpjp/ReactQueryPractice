@@ -1,5 +1,6 @@
 /* eslint-disable no-inner-declarations */
 import { useState, useEffect } from 'react';
+import { ethers } from 'ethers';
 import {
   init,
   useConnectWallet,
@@ -25,7 +26,7 @@ const initWeb3Onboard = init({
   wallets: [injected, coinbase, ledger, walletConnect, torus, gnosis],
   chains: [
     {
-      id: '0x7A69',
+      id: '0x7a69',
       token: 'ETH',
       label: 'Hardhat',
       rpcUrl: 'http://localhost:8545',
@@ -34,7 +35,7 @@ const initWeb3Onboard = init({
       id: '0x4',
       token: 'rETH',
       label: 'Rinkeby Testnet',
-      rpcUrl: `https://rinkeby.infura.io/v3/`,
+      rpcUrl: `https://rinkeby.infura.io/v3/7940d39fb5dc4fc0b12a17ff931cc442`,
     },
   ],
   appMetadata: {
@@ -76,6 +77,29 @@ function useOnboard() {
     setWeb3Onboard(initWeb3Onboard);
   }, []);
 
+  const [web3Provider, setWeb3Provider] = useState(null);
+
+  const [blockNumber, setBlockNumber] = useState(null);
+
+  useEffect(() => {
+    if (provider && !connecting) {
+      const p = new ethers.providers.Web3Provider(provider, 'any');
+      setWeb3Provider(p);
+      //Force page refreshes on network changes according to Ethers best practices
+      p.on('network', (newNetwork, oldNetwork) => {
+        // When a Provider makes its initial connection, it emits a "network"
+        // event with a null oldNetwork along with the newNetwork. So, if the
+        // oldNetwork exists, it represents a changing network
+        if (oldNetwork) {
+          window.location.reload();
+        }
+      });
+      p.on('block', (blockNumber) => {
+        setBlockNumber(blockNumber);
+      });
+    }
+  }, [provider, connectedChain, wallet, connecting]);
+
   useEffect(() => {
     if (!connectedWallets.length) return;
 
@@ -94,7 +118,7 @@ function useOnboard() {
     } else {
       setProvider(wallet.provider);
     }
-  }, [wallet]);
+  }, [wallet, connectedChain]);
 
   useEffect(() => {
     const previouslyConnectedWallets = JSON.parse(
@@ -120,8 +144,9 @@ function useOnboard() {
       const walletSelected = await connect();
       if (!walletSelected) return false;
     }
-    // prompt user to switch to Rinkeby for test
-    await setChain({ chainId: '0x7A69' });
+
+    // prompt user to switch to the correct chain
+    await setChain({ chainId: connectedChain.id });
 
     return true;
   };
@@ -141,6 +166,9 @@ function useOnboard() {
     connectedChain,
     setChain,
     settingChain,
+    blockNumber,
+    web3Provider,
+    address: wallet?.accounts[0].address,
   };
 }
 

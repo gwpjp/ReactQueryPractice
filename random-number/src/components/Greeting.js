@@ -7,32 +7,33 @@ import Greeter from '../artifacts/contracts/Greeter.sol/Greeter.json';
 
 const greeterAddress = '0x5FbDB2315678afecb367f032d93F642f64180aa3';
 
-const fetchGreeting = async (p, setChain) => {
-  await setChain({ chainId: '0x7A69' });
-  const provider = new ethers.providers.Web3Provider(p);
-  const contract = new ethers.Contract(greeterAddress, Greeter.abi, provider);
+const fetchGreeting = async (web3Provider) => {
+  const contract = new ethers.Contract(
+    greeterAddress,
+    Greeter.abi,
+    web3Provider
+  );
   return contract.greet();
 };
 
-const setGreeting = async (greeting, p) => {
-  const provider = new ethers.providers.Web3Provider(p);
-  const signer = provider.getSigner();
+const setGreeting = async (greeting, web3Provider) => {
+  const signer = web3Provider.getSigner();
   const contract = new ethers.Contract(greeterAddress, Greeter.abi, signer);
   const transaction = await contract.setGreeting(greeting);
   return await transaction.wait();
 };
 
 export function ReactQueryFetchGreeting() {
-  const { provider, readyToTransact, userEnabled, setChain } =
+  const { web3Provider, readyToTransact, userEnabled, connectedChain } =
     Onboard.useContainer();
 
-  const greet = useQuery(['greet'], () => fetchGreeting(provider, setChain), {
-    enabled: !!provider && userEnabled,
+  const greet = useQuery(['greet'], () => fetchGreeting(web3Provider), {
+    enabled: !!web3Provider && userEnabled && connectedChain.id == '0x7a69',
   });
 
   return (
     <div>
-      {!provider || !userEnabled ? (
+      {!web3Provider || !userEnabled ? (
         <p>Connect wallet to fetch...</p>
       ) : (
         <div>
@@ -59,18 +60,18 @@ export function ReactQueryFetchGreeting() {
 }
 
 export function ReactQuerySetGreeting() {
-  const { provider, readyToTransact, userEnabled } = Onboard.useContainer();
+  const { web3Provider, readyToTransact, userEnabled } = Onboard.useContainer();
 
   const [greetVal, setGreetingValue] = useState();
   const [transaction, setTransactionValue] = useState(null);
 
-  const greetMutation = useMutation((g) => setGreeting(g, provider), {
-    enabled: !!provider && userEnabled,
+  const greetMutation = useMutation((g) => setGreeting(g, web3Provider), {
+    enabled: !!web3Provider && userEnabled,
   });
 
   return (
     <div>
-      {!provider || !userEnabled ? (
+      {!web3Provider || !userEnabled ? (
         <p>Connect wallet to set...</p>
       ) : (
         <div>
