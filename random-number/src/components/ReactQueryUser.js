@@ -72,10 +72,14 @@ export default function ReactQueryUser() {
 
           <div>
             Wallet:{' '}
-            <div
-              dangerouslySetInnerHTML={{ __html: wallet.icon }}
-              style={{ height: 20, display: 'inline-block' }}
-            ></div>
+            <img
+              height={25}
+              width={25}
+              style={{ marginRight: 10 }}
+              src={`data:image/svg+xml;utf8,${encodeURIComponent(
+                wallet?.icon ?? ''
+              )}`}
+            />
             {!wallet || !wallet.label || connecting ? '...' : wallet.label}{' '}
           </div>
           <p>User: {!address || connecting ? '...' : address}</p>
