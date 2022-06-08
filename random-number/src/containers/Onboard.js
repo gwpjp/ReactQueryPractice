@@ -85,6 +85,7 @@ function useOnboard() {
     if (provider && !connecting) {
       const p = new ethers.providers.Web3Provider(provider, 'any');
       setWeb3Provider(p);
+
       //Force page refreshes on network changes according to Ethers best practices
       p.on('network', (newNetwork, oldNetwork) => {
         // When a Provider makes its initial connection, it emits a "network"
@@ -92,6 +93,15 @@ function useOnboard() {
         // oldNetwork exists, it represents a changing network
         if (oldNetwork) {
           window.location.reload();
+        }
+
+        // Check that the network is one of the accepted chains
+        const chainsList = chains.map((c) => {
+          return parseInt(c.id, 16);
+        });
+        if (chainsList.indexOf(newNetwork.chainId) == -1) {
+          setUserEnabled(false);
+          alert('Not an acceptable network');
         }
       });
       p.on('block', (blockNumber) => {
@@ -146,7 +156,7 @@ function useOnboard() {
     }
 
     // prompt user to switch to the correct chain
-    await setChain({ chainId: connectedChain.id });
+    //await setChain({ chainId: connectedChain.id });
 
     return true;
   };
